@@ -1,0 +1,105 @@
+Correlation of Suicide rates against Economical, Social, and Spiritual Factors
+========================================================
+author: Omar Gomez 
+date: 
+
+```{r echo=FALSE}
+library(shiny) 
+library(RCurl)
+library(ggplot2)
+library(labeling)
+
+RAW <- read.csv(text=getURL("https://03a22e53e220aa9d1c98c2dc3cbf5359ba61ac3f.googledrive.com/host/0B82pD6IuRl_7R0VfLTYxQjlicWM/suicidedata.html"), header=TRUE, sep = "\t")
+
+multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
+  require(grid)
+
+  # Make a list from the ... arguments and plotlist
+  plots <- c(list(...), plotlist)
+
+  numPlots = length(plots)
+
+  # If layout is NULL, then use 'cols' to determine layout
+  if (is.null(layout)) {
+    # Make the panel
+    # ncol: Number of columns of plots
+    # nrow: Number of rows needed, calculated from # of cols
+    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
+                    ncol = cols, nrow = ceiling(numPlots/cols))
+  }
+
+ if (numPlots==1) {
+    print(plots[[1]])
+
+  } else {
+    # Set up the page
+    grid.newpage()
+    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
+
+    # Make each plot, in the correct location
+    for (i in 1:numPlots) {
+      # Get the i,j matrix positions of the regions that contain this subplot
+      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
+
+      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
+                                      layout.pos.col = matchidx$col))
+    }
+  }
+}
+
+makeplot <- function(PRED, LABEL)
+{
+      IRR <- RAW[, c( "num.by.100k", PRED ) ]
+      IRR <- IRR[ complete.cases(IRR), ]
+      sp <- ggplot(IRR, aes_string(x=PRED, y="num.by.100k"))
+      sp + geom_point() + stat_smooth(method=lm) + xlab(LABEL) + ylab("Suicides per 100,000 people per year")
+}
+
+```
+
+Correlation of Suicide rates against Economical, Social, and Spiritual Factors
+========================================================
+
+In this presentation I try to find which factors correlates the most with suicide 
+rates across the world. 
+Data for suicide rates comes from Wikipedia: http://goo.gl/MVLE
+
+The App can be found at: http://omargomez.shinyapps.io/Quandl1/
+
+Suicide vs Economical Factors
+========================================================
+
+```{r echo=FALSE}
+multiplot( makeplot("unemployment.rate", "Unemployment Rate"), makeplot("pci.int.dollar","GDP Per Capita"), cols=2)
+```
+
+The least correlation of this study
+
+* [List of countries by GDP (PPP) per capita](http://en.wikipedia.org/wiki/List_of_countries_by_GDP_\(PPP\)_per_capita )
+* [List of countries by unemployment rate](http://en.wikipedia.org/wiki/List_of_countries_by_unemployment_rate)
+
+
+Suicide vs Social factors
+========================================================
+
+```{r, echo=FALSE}
+multiplot( makeplot("divorce.ratio", "Divorce Ratio"), makeplot("first.marriage.age","First Marriage Age"), makeplot("household.size.persons","Number of Households"), cols=3)
+```
+
+Not too bad
+
+* [Divorce demography](http://en.wikipedia.org/wiki/Divorce_demography)
+* [Age at First Marriage - Female By Country](http://www.quandl.com/c/demography/age-at-first-marriage-female-by-country)
+* [List of countries by number of households](http://en.wikipedia.org/wiki/List_of_countries_by_number_of_households#cite_note-1)
+
+Suicide vs Spiritual factors
+========================================================
+
+```{r, echo=FALSE}
+multiplot( makeplot("rel.importance.percentage", "Religion importance"), makeplot("irreligion.percentage","Irrelition Level"), cols=2)
+```
+
+The most correlation
+
+* [Irreligion by country](http://en.wikipedia.org/wiki/Irreligion_by_country)
+* [Importance of religion by country](http://en.wikipedia.org/wiki/Importance_of_religion_by_country)
